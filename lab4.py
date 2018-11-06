@@ -19,24 +19,21 @@ yr = DataFrame["Salary"]
 X_array = np.array(Xr)
 y_array = np.array(yr)
 
-#scores = cross_val_score(LinearRegression(), Xr, yr, cv=len(Xr), scoring = "r2")
-#print("Cross-validated scores:", scores)
-#print("Average: ", scores.mean())
-#print("Variance: ", np.std(scores))
+scores = cross_val_score(LinearRegression(), Xr, yr, cv=len(Xr), scoring = "r2")
+print("Cross-validated scores:", scores)
+print("Average: ", scores.mean())
+print("Variance: ", np.std(scores))
 
 loo = LeaveOneOut()
 ytests = []
 ypreds = []
 for train_idx, test_idx in loo.split(Xr):
-    X_train, X_test = X_array[train_idx], X_array[test_idx] #requires arrays
+    X_train, X_test = X_array[train_idx], X_array[test_idx]
     y_train, y_test = y_array[train_idx], y_array[test_idx]
     
     model = LinearRegression()
     model.fit(X = X_train, y = y_train) 
     y_pred = model.predict(X_test)
-        
-    # there is only one y-test and y-pred per iteration over the loo.split, 
-    # so to get a proper graph, we append them to respective lists.
         
     ytests += list(y_test)
     ypreds += list(y_pred)
@@ -46,6 +43,4 @@ rr = metrics.r2_score(ytests, ypreds)
 ms_error = metrics.mean_squared_error(ytests, ypreds)
         
 print("Leave One Out Cross Validation")
-print("MSE: {:.5f}".format(ms_error))
-
-https://towardsdatascience.com/train-test-split-and-cross-validation-in-python-80b61beca4b6
+print("R^2: {:.5f}%, MSE: {:.5f}".format(rr*100, ms_error))
