@@ -38,9 +38,11 @@ for train_idx, test_idx in loo.split(Xr):
     ytests += list(y_test)
     ypreds += list(y_pred)
     print("MSE: {:.5f}".format(metrics.mean_squared_error(ytests, ypreds)))
-        
-rr = metrics.r2_score(ytests, ypreds)
-ms_error = metrics.mean_squared_error(ytests, ypreds)
-        
+
+accuracy = metrics.r2_score(ytests, ypreds)
+ms_error = metrics.mean_squared_error(ytests, ypreds) 
 print("Leave One Out Cross Validation")
-print("R^2: {:.5f}%, MSE: {:.5f}".format(rr*100, ms_error))
+print("Cross-Predicted Accuracy: {:.5f}%, MSE: {:.5f}".format(accuracy*100, ms_error))
+
+model.fit(X_array, y_array);
+
