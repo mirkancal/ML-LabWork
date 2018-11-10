@@ -1,48 +1,77 @@
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
-"""
-Created on Tue Nov  6 11:09:14 2018
-
-@author: mirkan
-"""
-
-import numpy as np
-import pandas as pd
+#%% Import libraries
 from sklearn.linear_model import LinearRegression
-from sklearn.model_selection import train_test_split, cross_val_score, LeaveOneOut 
+from sklearn.model_selection import LeaveOneOut
 from sklearn import metrics
+import numpy as np
+import matplotlib.pyplot as plt
+import csv
 
-DataFrame = pd.read_csv('teams_comb.csv', encoding="latin-1")
-DataFrame = DataFrame.dropna()
-Xr = DataFrame[["Age", "Experience", "Power"]]
-yr = DataFrame["Salary"]
-X_array = np.array(Xr)
-y_array = np.array(yr)
+#%% Read Data
+def filler():
+    x0 = list()
+    x1 = list()
+    x2 = list()
+    x3 = list()
+    y_vals = list()
+    with open("teams_comb.csv", "r", newline='', encoding="latin-1") as csvfile:
+        row = csv.DictReader(csvfile)
 
-scores = cross_val_score(LinearRegression(), Xr, yr, cv=len(Xr), scoring = "r2")
-print("Cross-validated scores:", scores)
-print("Average: ", scores.mean())
-print("Variance: ", np.std(scores))
+        for i in row:
+            x0 = np.append(x0, '0').astype(dtype=float)
+            x1 = np.append(x1, i['Power']).astype(dtype=float)
+            x2 = np.append(x2, i['Age']).astype(dtype=float)
+            x3 = np.append(x3, i['Experience']).astype(dtype=float)
+            y_vals = np.append(y_vals, i['Salary']).astype(dtype=float)
+    csvfile.close()
+    x_vals = np.array([x0, x1, x2, x3])
+    return x_vals, y_vals
 
+#%% TASK 1
 loo = LeaveOneOut()
+
 ytests = []
 ypreds = []
-for train_idx, test_idx in loo.split(Xr):
-    X_train, X_test = X_array[train_idx], X_array[test_idx]
-    y_train, y_test = y_array[train_idx], y_array[test_idx]
-    
+for train_idx, test_idx in loo.split(X):
+    X_train, X_test = X[train_idx], X[test_idx]
+    y_train, y_test = salary[train_idx], salary[test_idx]
+
     model = LinearRegression()
-    model.fit(X = X_train, y = y_train) 
+    model.fit(X=X_train, y=y_train)
     y_pred = model.predict(X_test)
-        
+
     ytests += list(y_test)
     ypreds += list(y_pred)
-    print("MSE: {:.5f}".format(metrics.mean_squared_error(ytests, ypreds)))
 
-accuracy = metrics.r2_score(ytests, ypreds)
-ms_error = metrics.mean_squared_error(ytests, ypreds) 
+# MSE after LOO
+rr = metrics.r2_score(ytests, ypreds)
+ms_error = metrics.mean_squared_error(ytests, ypreds)
+
 print("Leave One Out Cross Validation")
-print("Cross-Predicted Accuracy: {:.5f}%, MSE: {:.5f}".format(accuracy*100, ms_error))
+print("R^2: {:.5f}%, MSE: {:.5f}".format(rr*100, ms_error))
 
-model.fit(X_array, y_array);
 
+#%% TASK 2
+ERR = list()
+x, salary = filler()
+X = np.transpose(x)
+
+reg = LinearRegression()
+reg.fit(X, salary)
+pred = reg.predict(X)
+
+for i, prediction in enumerate(pred):
+    ERR.append(prediction - salary[i])
+
+ERR2 = np.square(ERR)
+ERR2 = np.mean(ERR2)
+print(ERR2)
+
+er_list = list()
+for i in range(len(ytests)):
+    er_list.append(ypreds[i] - ytests[i])
+
+#%% TASK 3
+plt.scatter(pred, ERR, c='r')
+plt.scatter(ypreds, er_list, c='b')
+plt.hlines(0, 0, 40000)
+plt.show()
