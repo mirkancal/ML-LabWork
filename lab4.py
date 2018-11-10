@@ -1,4 +1,3 @@
-#%% Import libraries
 from sklearn.linear_model import LinearRegression
 from sklearn.model_selection import LeaveOneOut
 from sklearn import metrics
@@ -6,7 +5,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import csv
 
-#%% Read Data
+
 def filler():
     x0 = list()
     x1 = list()
@@ -26,7 +25,19 @@ def filler():
     x_vals = np.array([x0, x1, x2, x3])
     return x_vals, y_vals
 
-#%% TASK 1
+# All data
+ERR = list()
+x, salary = filler()
+X = np.transpose(x)
+
+reg = LinearRegression()
+reg.fit(X, salary)
+pred = reg.predict(X)
+
+for i, prediction in enumerate(pred):
+    ERR.append(prediction - salary[i])
+
+
 loo = LeaveOneOut()
 
 ytests = []
@@ -39,6 +50,9 @@ for train_idx, test_idx in loo.split(X):
     model.fit(X=X_train, y=y_train)
     y_pred = model.predict(X_test)
 
+    # there is only one y-test and y-pred per iteration over the loo.split,
+    # so to get a proper graph, we append them to respective lists.
+
     ytests += list(y_test)
     ypreds += list(y_pred)
 
@@ -49,29 +63,19 @@ ms_error = metrics.mean_squared_error(ytests, ypreds)
 print("Leave One Out Cross Validation")
 print("R^2: {:.5f}%, MSE: {:.5f}".format(rr*100, ms_error))
 
-
-#%% TASK 2
-ERR = list()
-x, salary = filler()
-X = np.transpose(x)
-
-reg = LinearRegression()
-reg.fit(X, salary)
-pred = reg.predict(X)
-
-for i, prediction in enumerate(pred):
-    ERR.append(prediction - salary[i])
-
+# TASK 2
+errr = list()
 ERR2 = np.square(ERR)
 ERR2 = np.mean(ERR2)
 print(ERR2)
 
-er_list = list()
-for i in range(len(ytests)):
-    er_list.append(ypreds[i] - ytests[i])
+actual_err = list()
 
-#%% TASK 3
-plt.scatter(pred, ERR, c='r')
-plt.scatter(ypreds, er_list, c='b')
+for i in range(len(ytests)):
+    errr.append(ypreds[i] - ytests[i])
+
+# TASK3 I assume
+plt.scatter(pred, ERR, c='g')
+plt.scatter(ypreds, errr, c='r')
 plt.hlines(0, 0, 40000)
 plt.show()
